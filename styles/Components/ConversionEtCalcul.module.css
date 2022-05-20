@@ -10,7 +10,8 @@
 .validationButton,
 .cardSelectBox,
 .cardSelect,
-.cardInfoTechCylindree {
+.cardInfoTechCylindree,
+.cardInfoCotation {
   /* border: solid red 1px; */
   width: 100%;
   display: flex;
@@ -147,5 +148,10 @@
 
 .cardSelect {
   font-size: 1.5;
+  color: red;
+}
+
+.cardInfoCotation {
+  font-size: 1.2rem;
   color: red;
 }

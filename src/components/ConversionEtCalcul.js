@@ -13,13 +13,14 @@ const ConversionEtCalcul = () => {
   const cleApi = '884d7361855aca074a01d304581f49c33c3c172e';
   const url = 'https://api.getgeoapi.com/v2/currency/convert';
 
-  //! ------------------------------------------------------------
+  //! -------------------------------------------------------------------------------
 
   //! Les constantes.
 
   const [prixAED, setPrixAED] = useState(0);
   const [afficheCoursAED, setAfficheCoursAED] = useState(0);
   const [affichePrixEuro, setAffichePrixEuro] = useState(0);
+  const [cotationManuelle, setCotationManuelle] = useState(0);
   const [afficheDroitdouane, setAfficheDroitdouane] = useState(0);
   const [afficheTvaRegionale, setAfficheTvaRegionale] = useState(0);
   const [afficheOctroiDeMer, setAfficheOctroiDeMer] = useState(0);
@@ -27,16 +28,12 @@ const ConversionEtCalcul = () => {
   const [differencePrix, setDifferencePrix] = useState(0);
   const [afficheTitle, setAfficheTitle] = useState(0);
   const [infoCylindree, setInfoCylindree] = useState(0);
-  // const [cylindreeDuVehicule, setCylindreeDuVehicule] = useState('');
   const [affichePrixVehicule, setAffichePrixVehicule] = useState(0);
-
   const [optionCylindree, setOptionCylindree] = useState('');
-  // console.log('optionCylindree :', optionCylindree);
-  // console.log('optionCylindree TYPE :', typeof optionCylindree);
 
-  //! ------------------------------------------------------------
+  //! -------------------------------------------------------------------------------
 
-  //! Constantes et variables.
+  //! Les constantes.
 
   const droitsDeDouane = 10;
   const tvaRegionale = 8.5;
@@ -46,11 +43,9 @@ const ConversionEtCalcul = () => {
   const entretient = 1500;
   const transite = 1500;
 
-  // const options = [
-  //   { value: 'chocolate', label: 'Chocolate' },
-  //   { value: 'strawberry', label: 'Strawberry' },
-  //   { value: 'vanilla', label: 'Vanilla' },
-  // ];
+  //! -------------------------------------------------------------------------------
+
+  //! Les variables.
 
   let prixEnEuros = 0;
   let coursAED;
@@ -61,13 +56,12 @@ const ConversionEtCalcul = () => {
   let differenceBrut;
   let octroiDeMer;
   let montantoctroiDeMer;
-
-  //! ------------------------------------------------------------
-
-  //! Récupération informations véhicule dans la base de données.
-
   let prixVehiculeBrut;
   let prixVehicule;
+
+  //! -------------------------------------------------------------------------------
+
+  //! Récupération informations véhicule dans la base de données.
 
   let getCarData = () => {
     axios
@@ -76,13 +70,26 @@ const ConversionEtCalcul = () => {
         'https://rocky-temple-30433.herokuapp.com/api/dataFromExtensionRoute/getInfoVehicule/'
       )
       .then((response) => {
-        // console.log(response.data);
+        //console.log('Requete brute : ', response.data);
 
         prixVehiculeBrut = response.data[0].prixVehicule;
         prixVehicule = parseFloat(prixVehiculeBrut);
 
-        // console.log('prixVehicule : ' + prixVehicule);
-        // console.log('prixVehicule : ' + typeof prixVehicule);
+        if (prixVehicule >= 0.1) {
+          prixVehicule = prixVehicule;
+
+          // console.log('Typeof prixVehicule = Number :', prixVehicule);
+
+          document.getElementById('pasDeCotationId').style.display = 'none';
+          document.getElementById('coteManu').style.display = 'none';
+        } else {
+          prixVehicule = 0;
+
+          // console.log('Typeof prixVehicule = NaN :', prixVehicule);
+
+          document.getElementById('pasDeCotationId').style.display = 'block';
+          document.getElementById('coteManu').style.display = 'flex';
+        }
 
         setAffichePrixVehicule(prixVehicule);
         setAfficheTitle(response.data[0].infoVehicule);
@@ -96,15 +103,16 @@ const ConversionEtCalcul = () => {
 
   useEffect(() => {
     getCarData();
-  });
+  }),
+    [];
 
-  //! ------------------------------------------------------------
+  //! -------------------------------------------------------------------------------
 
   //! Fonction au clic du bouton valider "Informations pour la cotation"
+
   const validerCalcule = (e) => {
     e.preventDefault();
 
-    //? 1) Conversion du prix AED en Euros.
     //
     axios
       .get(
@@ -120,6 +128,8 @@ const ConversionEtCalcul = () => {
           '&format=json'
       )
 
+      //! 1) Conversion du prix AED en Euros.
+      //
       .then((response) => {
         // console.log(response.data);
 
@@ -141,11 +151,11 @@ const ConversionEtCalcul = () => {
         );
       })
 
-      //! -----------------------------------------------
+      //! -------------------------------------------------------------------------------
 
+      //! 2) Calcule des droits de douane.
       .then(() => {
         //
-        //! 2) ------------ Calcule des droits de douane. ------------
 
         let droitsDeDouaneBrut = prixEnEuros * (droitsDeDouane / 100);
         montantDroitsDeDouane = Math.round(droitsDeDouaneBrut * 100) / 100;
@@ -157,12 +167,14 @@ const ConversionEtCalcul = () => {
         // );
 
         setAfficheDroitdouane(montantDroitsDeDouane); // Ligne 20.
-
-        //! -----------------------------------------------
       })
+
+      //! -------------------------------------------------------------------------------
+
+      //! 3) Calcule TVA régionale.
+
       .then(() => {
         //
-        //! 3) ------------ Calcule TVA régionale. ------------
 
         let tvaRegionaleBrut = prixEnEuros * (tvaRegionale / 100);
         montantTvaRegionale = Math.round(tvaRegionaleBrut * 100) / 100;
@@ -174,12 +186,15 @@ const ConversionEtCalcul = () => {
         // );
 
         setAfficheTvaRegionale(montantTvaRegionale); // Ligne 21.
-
-        //! -----------------------------------------------
       })
+
+      //! -------------------------------------------------------------------------------
+
+      //! 4) Calcule octroi de mer.
+      //
       .then(() => {
         //
-        //! 4) ------------ Calcule octroi de mer. ------------
+
         octroiDeMer = parseFloat(optionCylindree);
 
         let octroiDeMerBrut = prixEnEuros * (octroiDeMer / 100);
@@ -192,11 +207,14 @@ const ConversionEtCalcul = () => {
         // );
 
         setAfficheOctroiDeMer(montantoctroiDeMer); // Ligne 22.
-        //! -----------------------------------------------
       })
+
+      //! -------------------------------------------------------------------------------
+
+      //! 5) Calule du total.
+      //
       .then(() => {
         //
-        //! 5) ------------ Calule du total. ------------
 
         let calculeDuTotalBrut =
           prixEnEuros +
@@ -218,15 +236,16 @@ const ConversionEtCalcul = () => {
         setTotal(calculeDuTotal);
 
         console.log('5) Prix du véhicule TTC ===========> ' + calculeDuTotal);
-
-        //! -----------------------------------------------
       })
 
+      //! -------------------------------------------------------------------------------
+
+      //! 6) Calcule de la différence.
+      //
       .then(() => {
         //
-        //! 6) ------------ Calcule de la différence. ------------
 
-        differenceBrut = calculeDuTotal - prixVehicule;
+        differenceBrut = calculeDuTotal - (prixVehicule + cotationManuelle);
 
         difference = Math.round(differenceBrut * 100) / 100;
 
@@ -236,15 +255,15 @@ const ConversionEtCalcul = () => {
         // );
 
         setDifferencePrix(difference);
-
-        //! -----------------------------------------------
       })
+
+      //! -------------------------------------------------------------------------------
       .catch((error) => {
         console.log(error);
       });
   };
 
-  //!---------------------------- HTML ---------------------------------------
+  //!---------------------------- JSX ---------------------------------------
 
   return (
     <div className={styles.box}>
@@ -261,6 +280,20 @@ const ConversionEtCalcul = () => {
 
           <div className={styles.cardInfoPrix}>
             Prix : {affichePrixVehicule} €
+          </div>
+          <span id="pasDeCotationId" className={styles.cardInfoCotation}>
+            Pas de cotation disponible
+          </span>
+
+          <div id="coteManu" className={styles.cardInputBox}>
+            <input
+              id="cotationManuelle"
+              className={styles.cardInput}
+              type="number"
+              placeholder="Cotation manuelle"
+              required
+              onChange={(e) => setCotationManuelle(e.target.valueAsNumber)}
+            ></input>
           </div>
 
           <div
